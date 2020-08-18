@@ -58,18 +58,19 @@ function addUsuario(req, res){
 
                 User.find({ $or: [
                     { usuario: user.usuario},
-                    { cui : user.cui}
+                    { cui : user.cui},
+                    {carnet: user.carnet}
                     ]}).exec((error, users)=>{
                         if(error) return res.status(500).send({ message: 'Error en la peticion de usuarios' })
                         if(users && users.length >=1){
-                        return res.status(500).send({ message: 'El usuario ya existe'})
+                        return res.status(500).send({ message: 'Usuario ya registrado anteriormente en la base de datos'})
                         }else{bcrypt.hash(params.password, null, null, (error, hash)=>{
                         user.password = hash;
                         
                         user.save((error, usuarioGuardado)=>{
                             if(error) return res.status(500).send({message: 'Error al guardar el usuario'})
                             if(usuarioGuardado){
-                            res.status(200).send({usuario: usuarioGuardado})
+                            res.status(200).send({usuarioGuardado : "Usuario creado con éxito"})
                             }else{
                             res.status(404).send({message : 'No se ha podido guardar usuario'})
                             }
