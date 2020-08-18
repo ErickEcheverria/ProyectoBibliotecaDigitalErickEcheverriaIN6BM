@@ -6,7 +6,7 @@ const app = express();
 const bodyParser = require("body-parser")
 
 //CARGA DE RUTAS
-//var universal_routes = require("./routes/routesUniversal")
+var usuario_routes = require("./routes/usuarioRoutes")
 
 
 
@@ -25,7 +25,7 @@ app.use((req, res, next)=>{
 })
 
 //RUTAS
-app.use('/api',/*universal_routes*/)
+app.use('/api',usuario_routes)
 
 
 
