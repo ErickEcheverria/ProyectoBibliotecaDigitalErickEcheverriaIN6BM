@@ -6,6 +6,7 @@ var User = require('../models/user');
 var jwt = require('../services/jwt');
 var path = require("path");
 var fs = require('fs');
+const rol = "admin";
 
 // Variable creada para crear el usuario "admin"
 var addAdmin = 1;
@@ -43,7 +44,6 @@ if(addAdmin== 1){
 function addUsuario(req, res){
     var user = new User();
     var params = req.body;
-    var rol = "admin";
 
     if(rol ==req.user.rol){
         if(params.rol == "estudiante" || params.rol =="catedrático"){
@@ -70,7 +70,7 @@ function addUsuario(req, res){
                         user.save((error, usuarioGuardado)=>{
                             if(error) return res.status(500).send({message: 'Error al guardar el usuario'})
                             if(usuarioGuardado){
-                            res.status(200).send({usuarioGuardado : "Usuario creado con éxito"})
+                            res.status(200).send({message : 'Usuario creado con éxito',usuarioGuardado})
                             }else{
                             res.status(404).send({message : 'No se ha podido guardar usuario'})
                             }
@@ -82,10 +82,10 @@ function addUsuario(req, res){
             res.status(200).send({message: 'Rellene los datos necesarios'})
         }
     }else{
-        return res.status(500).send({ message: 'Rol ingresado no permitido Admitidos únicamente: estudiante, catedrático'})
+        return res.status(500).send({ message: 'Rol ingresado no permitido. Admitidos únicamente: estudiante, catedrático'})
     }
 }else{
-    return res.status(500).send({ message: 'No tiene los permisos para actualizar este usuario'})
+    return res.status(500).send({ message: 'No tiene los permisos para agregar este usuario'})
 }
 
 }
@@ -115,7 +115,51 @@ function loginUsuario(req, res){
         }
     })
 }
+function verUsuarios(req,res){
+    if(rol == req.user.rol){
+        User.find((error,usuariosEncontrados)=>{
+            if(error) return res.status(500).send({message: 'Error en la peticion'})
+            if(!usuariosEncontrados) return res.status(404).send({message:'No se ha podido buscar los usuarios'})
+            if(usuariosEncontrados) return res.status(200).send(usuariosEncontrados)
+        })
+    }else{
+        return res.status(500).send({ message: 'No tiene los permisos para ver los usuarios registrados'})
+    }
+}
+function editarUsuario(req,res){
+    var idUsuario = req.params.usuarioId;
+    var params = req.body;
+    
+    delete params.password;
+
+    if(rol == req.user.rol){
+        User.findByIdAndUpdate(idUsuario,params,{new:true},(error,usuarioActualizado)=>{
+            if(error) return res.status(500).send({ message: 'Error en la peticion'})
+            if(!usuarioActualizado) return res.status(404).send({ message: 'No se ha podido actualizar usuario'})
+            if(usuarioActualizado) return res.status(200).send({message: 'El usuario fue actualizado correctamente',usuarioActualizado})
+        })
+    }else{
+        return res.status(500).send({ message: 'No tiene los permisos para modificar este usuario'})
+    }
+}
+function eliminarUsuario(req,res){
+    var idUsuario = req.params.usuarioId;
+    
+    if(rol == req.user.rol){
+        User.findByIdAndDelete(idUsuario,(error,usuarioEliminado)=>{
+            if(error) return res.status(500).send({ message: 'Error en la peticion'})
+            if(!usuarioEliminado) return res.status(404).send({ message: 'No se ha podido eliminar usuario'})
+            if(usuarioEliminado) return res.status(200).send({message: 'El usuario fue eliminado correctamente',usuarioEliminado})
+        })
+    }else{
+        return res.status(200).send({message: 'No tiene los permisos para eliminar usuarios'})
+    }
+
+}
 module.exports={
     addUsuario,
-    loginUsuario
+    loginUsuario,
+    verUsuarios,
+    eliminarUsuario,
+    editarUsuario
 }
