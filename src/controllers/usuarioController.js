@@ -40,7 +40,6 @@ if(addAdmin== 1){
 }else{
     res.status(200).send({message: 'Rellene los datos necesarios'})
 }
-// Funcion para añadir usuarios
 function addUsuario(req, res){
     var user = new User();
     var params = req.body;

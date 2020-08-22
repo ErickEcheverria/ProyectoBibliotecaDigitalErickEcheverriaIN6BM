@@ -7,6 +7,7 @@ const bodyParser = require("body-parser")
 
 //CARGA DE RUTAS
 var usuario_routes = require("./routes/usuarioRoutes")
+var libroRevista_routes = require("./routes/libroRevistaRoutes")
 
 
 
@@ -25,7 +26,7 @@ app.use((req, res, next)=>{
 })
 
 //RUTAS
-app.use('/api',usuario_routes)
+app.use('/api',usuario_routes,libroRevista_routes)
 
 
 
