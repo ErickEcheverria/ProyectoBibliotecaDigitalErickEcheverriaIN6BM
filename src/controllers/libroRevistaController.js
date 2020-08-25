@@ -17,16 +17,17 @@ function addLibroRevista(req,res){
         switch (libro_o_Revista) {
             case 'libro':
 
-                
+            var parametroPalabrasClave = req.body.palabrasClave;
+            var datoPC = parametroPalabrasClave.split(',');
+            var parametroTemas = req.body.temas;
+            var datoTM = parametroTemas.split(',');
 
                 if(params.autor && params.titulo && params.edicion && params.palabrasClave && params.descripcion && params.temas && params.copias && params.disponibles){
                     libroRevista.categoria = "libro";
                     libroRevista.autor = params.autor;
                     libroRevista.titulo = params.titulo;
                     libroRevista.edicion = params.edicion;
-                    var palabrasClave = params.palabrasClave;
                     libroRevista.descripcion = params.descripcion;
-                    var Ptemas = params.temas;
                     libroRevista.copias = params.copias;
                     libroRevista.disponibles = params.disponibles;
 
@@ -41,12 +42,12 @@ function addLibroRevista(req,res){
                             if(error) return res.status(500).send({message: 'Error al guardar el libro'})
                             if(libroGuardado){
                                 console.log('Libro Guardado con exito')
-                                LibroRevista.findByIdAndUpdate(libroGuardado.id,{$addToSet:{palabrasClave:{palabraClave:palabrasClave}}},{new:true},(error,palabraGuardada)=>{
+                                LibroRevista.findByIdAndUpdate(libroGuardado.id,{$addToSet:{palabrasClave:{palabraClave:datoPC[0]}}},{new:true},(error,palabraGuardada)=>{
                                     if (error) return res.status(404).send({ message: "Error en la peticion de LibroRevista" })
                                     if (!palabraGuardada) return res.status(500).send({ message: "El Libro no se ha encontrado en la base de datos" })
                                     console.log('PalabrasClave guardadas con exito')
                                 })
-                                LibroRevista.findByIdAndUpdate(libroGuardado.id,{$addToSet:{temas:{tema:Ptemas}}},{new:true},(error,temaGuardado)=>{
+                                LibroRevista.findByIdAndUpdate(libroGuardado.id,{$addToSet:{temas:{tema:datoTM[0]}}},{new:true},(error,temaGuardado)=>{
                                     if (error) return res.status(404).send({ message: "Error en la peticion de LibroRevista" })
                                     if (!temaGuardado) return res.status(500).send({ message: "El Libro no se ha encontrado en la base de datos" })
                                     return res.status(200).send({message : 'Libro creado con éxito',temaGuardado})
@@ -86,12 +87,12 @@ function addLibroRevista(req,res){
                             if(error) return res.status(500).send({message: 'Error al guardar la revista'})
                             if(revistaGuardada){
                                 console.log('Revista Guardado con exito')
-                                LibroRevista.findByIdAndUpdate(revistaGuardada.id,{$addToSet:{palabrasClave:{palabraClave:palabrasClave}}},{new:true},(error,palabraGuardada)=>{
+                                LibroRevista.findByIdAndUpdate(revistaGuardada.id,{$addToSet:{palabrasClave:{palabraClave:datoPC[0]}}},{new:true},(error,palabraGuardada)=>{
                                     if (error) return res.status(404).send({ message: "Error en la peticion de LibroRevista" })
                                     if (!palabraGuardada) return res.status(500).send({ message: "La revista no se ha encontrado en la base de datos" })
                                     console.log('PalabrasClave guardadas con exito')
                                 })
-                                LibroRevista.findByIdAndUpdate(revistaGuardada.id,{$addToSet:{temas:{tema:Ptemas}}},{new:true},(error,temaGuardado)=>{
+                                LibroRevista.findByIdAndUpdate(revistaGuardada.id,{$addToSet:{temas:{tema:datoTM[0]}}},{new:true},(error,temaGuardado)=>{
                                     if (error) return res.status(404).send({ message: "Error en la peticion de LibroRevista" })
                                     if (!temaGuardado) return res.status(500).send({ message: "La revista no se ha encontrado en la base de datos" })
                                     return res.status(200).send({message : 'Revista creada con éxito',temaGuardado})
@@ -113,8 +114,38 @@ function addLibroRevista(req,res){
         return res.status(500).send({ message: 'No tiene los permisos para agregar libros y revistas'})
     }
 }
+function editarLibroRevista(req,res){
+    var idLibroRevista = req.params.libroRevistaId;
+    var params = req.body;
+
+    if(rol == req.user.rol){
+        LibroRevista.findByIdAndUpdate(idLibroRevista,params,{new:true},(error,libroRevistaActualizado)=>{
+            if(error) return res.status(500).send({ message: 'Error en la peticion'})
+            if(!libroRevistaActualizado) return res.status(404).send({ message: 'No se ha podido actualizar el libro / revista'})
+            if(libroRevistaActualizado) return res.status(200).send({message: 'El libro / revista fue actualizado correctamente',libroRevistaActualizado})
+        })
+    }else{
+        return res.status(500).send({ message: 'No tiene los permisos para modificar este libro/revista'})
+    }
+}
+function eliminarlibroRevista(req,res){
+    var idLibroRevista = req.params.libroRevistaId;
+    
+    if(rol == req.user.rol){
+        LibroRevista.findByIdAndDelete(idLibroRevista,(error,libroRevistaEliminado)=>{
+            if(error) return res.status(500).send({ message: 'Error en la peticion'})
+            if(!libroRevistaEliminado) return res.status(404).send({ message: 'No se ha podido eliminar el libro / revista'})
+            if(libroRevistaEliminado) return res.status(200).send({message: 'El libro / revista fue eliminado correctamente',libroRevistaEliminado})
+        })
+    }else{
+        return res.status(200).send({message: 'No tiene los permisos para eliminar libro / revista'})
+    }
+
+}
 
 
 module.exports={
-    addLibroRevista
+    addLibroRevista,
+    editarLibroRevista,
+    eliminarlibroRevista
 }
