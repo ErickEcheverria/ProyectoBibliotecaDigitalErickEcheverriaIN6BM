@@ -11,6 +11,7 @@ exports.createToken = function (user) {
         apellido: user.apellido,
         rol: user.rol,
         password: user.password,
+        cantidadDeLibrosPrestado: user.cantidadDeLibrosPrestado,
         iat: moment().unix(),
         exp: moment().day(30, 'days').unix()
     }

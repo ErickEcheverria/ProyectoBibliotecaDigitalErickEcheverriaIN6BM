@@ -3,6 +3,7 @@
 //IMPORTS
 var bcrypt = require("bcrypt-nodejs"); 
 var LibroRevista = require('../models/libroRevista');
+var User = require('../models/user');
 var jwt = require('../services/jwt');
 var path = require("path");
 var fs = require('fs');
@@ -140,12 +141,59 @@ function eliminarlibroRevista(req,res){
     }else{
         return res.status(200).send({message: 'No tiene los permisos para eliminar libro / revista'})
     }
+}
+//NO funciona busquedaLibroRevista 6/09/2020
+function busquedaLibroRevista(req,res){
+    var params = req.body;
+    var parametroBuscar = params.parametro;
+    var identificadorIngresado = params.identificador;
 
+    if(rol == req.user.rol){
+        LibroRevista.find({ parametroBuscar : identificadorIngresado},(error, libroRevistaEncontrado)=>{
+            if(error) return res.status(500).send({ message:"Error en la peticion"})
+            if(!libroRevistaEncontrado) return res.status(404).send({message: "Libro / Revista no encontrado en la base de datos"})
+            if(libroRevistaEncontrado) return res.status(200).send({message: "Libro / Revista encontrado con exito", libroRevistaEncontrado})
+        })
+    }else{
+        return res.status(200).send({message: 'No tiene los permisos para buscar libro / revista'})
+    }
+}
+function prestamoLibroRevista(req,res){
+    var libroRevistaPrestar = req.params.libroRevistaId;
+    var usuario = req.user.sub;
+    var cantidadDeLibrosUsuario = req.user.cantidadDeLibrosPrestado;
+
+    if(req.user.rol=="estudiante" || req.user.rol == "catedrático"){
+        if(cantidadDeLibrosUsuario < 10){
+            LibroRevista.findById(libroRevistaPrestar,(error,libroRevistaEncontrado)=>{
+                if(error) return res.status(500).send({message: "Error en la peticionn"})
+                if(!libroRevistaEncontrado) return res.status(404).send({message:"Libro / Revista no encontrado en la base de datos"})
+                if(libroRevistaEncontrado){
+                    User.findByIdAndUpdate(usuario,{$addToSet:{librosRevistasPrestados:{idLibroRevista:libroRevistaEncontrado.id}}},{new:true},(error,libroRevistaPrestado)=>{
+                        if(error) return res.status(500).send({message: "Error en la peticion"})
+                        if(!libroRevistaPrestado) return res.status(404).send({message:"Usuario no encontrado en la base de datos"})
+                        if(libroRevistaPrestado) return res.status(200).send({message:"Libro agregado a su lista de libros prestados"})
+                    })
+                    User.findByIdAndUpdate(usuario,{$inc:{cantidadDeLibrosPrestado:+1}},{new: true},(error,contadorSumado)=>{
+                        if(error) return res.status(500).send({message: "Error en la peticion"})
+                        if(!contadorSumado) return res.status(404).send({message:"Usuario no encontrado en la base de datos"})
+                        if(contadorSumado) return console.log("Libro agregado a su lista de libros prestados con exito")
+                    })
+                }
+            })
+        }else{
+            return res.status(200).send({message: "Exceso de libros prestados"})
+        }
+    }else{
+        return res.status(200).send({message: "No tiene los permisos para hacer prestamos"})
+    }
 }
 
 
 module.exports={
     addLibroRevista,
     editarLibroRevista,
-    eliminarlibroRevista
+    eliminarlibroRevista,
+    busquedaLibroRevista,
+    prestamoLibroRevista
 }

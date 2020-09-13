@@ -11,7 +11,10 @@ var UserSchema = Schema({
     apellido: String,
     rol: {type: String, require: true},
     password: {type: String, require: true},
-    
+    librosRevistasPrestados: {
+        idLibroRevista: {type: Schema.ObjectId, ref:'libroRevista'},
+    },
+    cantidadDeLibrosPrestado : Number
 })
 
 module.exports = mongoose.model('user', UserSchema)
