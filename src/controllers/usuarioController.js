@@ -54,6 +54,7 @@ function addUsuario(req, res){
                 user.apellido = params.apellido;
                 user.rol = params.rol;
                 user.password =params.password;
+                user.cantidadDeLibrosPrestado = "0";
 
                 User.find({ $or: [
                     { usuario: user.usuario},
