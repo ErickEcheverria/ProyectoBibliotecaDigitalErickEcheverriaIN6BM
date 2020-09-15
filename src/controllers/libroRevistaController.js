@@ -180,13 +180,13 @@ function prestamoLibroRevista(req,res){
                                 if(libroRevistaPrestado) return res.status(200).send({message:"Libro agregado a su lista de libros prestados"})
                             })
                             User.findByIdAndUpdate(usuario,{$inc:{cantidadDeLibrosPrestado:+1}},{new: true},(error,contadorSumado)=>{
-                                if(error) return res.status(500).send({message: "Error en la peticion"})
-                                if(!contadorSumado) return res.status(404).send({message:"Usuario no encontrado en la base de datos"})
-                                if(contadorSumado) return console.log("Libro agregado a su lista de libros prestados con exito")
+                                if(error) return console.log("Error en la peticion")
+                                if(!contadorSumado) return console.log("Usuario no encontrado en la base de datos")
+                                if(contadorSumado) return console.log("Cantidad sumada de cantidadDeLibrosPrestado con exito")
                             })
                             LibroRevista.findByIdAndUpdate(libroRevistaPrestar,{$inc:{disponibles:-1}},{new:true},(error,disponibleRestado)=>{
-                                if(error) return res.status(500).send({message: "Error en la peticion"})
-                                if(!disponibleRestado) return res.status(404).send({message:"Usuario no encontrado en la base de datos"})
+                                if(error) return console.log("Error en la peticion")
+                                if(!disponibleRestado) return console.log("Usuario no encontrado en la base de datos")
                                 if(disponibleRestado) return console.log("Cantidad restada de disponibles con exito")
                             })
                         }else{
@@ -202,12 +202,47 @@ function prestamoLibroRevista(req,res){
         return res.status(200).send({message: "No tiene los permisos para hacer prestamos"})
     }
 }
+function devolucionLibroRevista(req,res){
+    var libroRevistaDevolver = req.params.libroRevistaId;
+    var usuario = req.user.sub;
 
-
+    if(req.user.rol=="estudiante" || req.user.rol == "catedrático"){
+        User.findById(usuario,(error,usuarioEncontrado)=>{
+            if(error) return res.status(500).send({message: "Error en la peticion de Usuario"})
+            if(!usuarioEncontrado) return res.status(404).send({message: "Usuario no encontrado en la base de datos"})
+            if(usuarioEncontrado){
+                User.findOne({"librosRevistasPrestados.idLibroRevista": libroRevistaDevolver},(error,libroRevistaEncontrado)=>{
+                    if(error) return res.status(500).send({message: "Error en la peticion de libroRevista"})
+                    if(!libroRevistaEncontrado) return res.status(404).send({message: "Libro / Revista no encontado en la lista de prestamos del usuario"})
+                    if(libroRevistaEncontrado){
+                        User.findByIdAndUpdate(usuario,{$pull :{librosRevistasPrestados:{idLibroRevista:libroRevistaDevolver}}},(error,libroRevistaEliminadoDePrestamos)=>{
+                            if(error) return res.status(500).send({message: "Error en la peticion de Usuario"})
+                            if(!libroRevistaEliminadoDePrestamos) return res.status(404).send({message: "Libro/Revista no encontrado en lista de prestamos del usuario"})
+                            if(libroRevistaEliminadoDePrestamos) return res.status(200).send({message: "Libro devuelto exitosamente", libroRevistaEliminadoDePrestamos})
+                        })
+                        User.findByIdAndUpdate(usuario,{$inc:{cantidadDeLibrosPrestado:-1}},{new: true},(error,contadorSumado)=>{
+                            if(error) return console.log("Error en la peticion")
+                            if(!contadorSumado) return console.log("Usuario no encontrado en la base de datos")
+                            if(contadorSumado) return console.log("Cantidad restada de cantidadDeLibrosPrestado con exito")
+                        })
+                        LibroRevista.findByIdAndUpdate(libroRevistaDevolver,{$inc:{disponibles:+1}},{new:true},(error,disponibleSumado)=>{
+                            if(error) return console.log("Error en la peticion")
+                            if(!disponibleSumado) return console.log("Libro / Revista no encontrado en la base de datos")
+                            if(disponibleSumado) return console.log("Cantidad restada de disponibles con exito")
+                        })
+                    }
+                })
+            }
+        })
+    }else{
+        return res.status(200).send({message: "No tiene el permiso para hacer la devolucion"})
+    }
+}
 module.exports={
     addLibroRevista,
     editarLibroRevista,
     eliminarlibroRevista,
     busquedaLibroRevista,
-    prestamoLibroRevista
+    prestamoLibroRevista,
+    devolucionLibroRevista
 }

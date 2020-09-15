@@ -11,6 +11,7 @@ api.put('/actualizarLibroRevista/:libroRevistaId',md_auth.ensureAuth,libroRevist
 api.delete('/eliminarLibroRevista/:libroRevistaId',md_auth.ensureAuth,libroRevistaController.eliminarlibroRevista);
 api.get('/buscarLibroRevista',md_auth.ensureAuth,libroRevistaController.busquedaLibroRevista);
 api.put('/prestamoLibroRevista/:libroRevistaId',md_auth.ensureAuth,libroRevistaController.prestamoLibroRevista);
+api.put('/devolucionLibroRevista/:libroRevistaId',md_auth.ensureAuth,libroRevistaController.devolucionLibroRevista);
 
 
 
