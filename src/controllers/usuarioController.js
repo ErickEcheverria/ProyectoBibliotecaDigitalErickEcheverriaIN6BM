@@ -92,7 +92,7 @@ function addUsuario(req, res){
 function loginUsuario(req, res){
     var params = req.body;
 
-    User.findOne({nombre: params.nombre},(error,user)=>{
+    User.findOne({usuario: params.usuario},(error,user)=>{
         if(error) return res.status(500).send({message: 'Error'})
         
         if(user){
